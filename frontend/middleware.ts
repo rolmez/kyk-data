@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "kyk2025demo";
+const DEMO_PASSWORD = process.env.DEMO_PASSWORD || "kyk2026demo";
 const COOKIE_NAME = "kyk_demo_auth";
 
 export function middleware(request: NextRequest) {

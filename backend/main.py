@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-from routers import analytics, chat
+from routers import analytics, chat, marketing
 
 load_dotenv()
 
@@ -24,6 +24,7 @@ app.add_middleware(
 
 app.include_router(analytics.router)
 app.include_router(chat.router)
+app.include_router(marketing.router, prefix="/api/marketing")
 
 @app.get("/")
 def root():

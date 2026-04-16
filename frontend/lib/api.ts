@@ -99,3 +99,18 @@ export const fetchAbcAnalysis = async (): Promise<ABCAnalysisItem[]> => {
   if (!res.ok) throw new Error("Failed to fetch ABC analysis");
   return res.json();
 };
+
+export interface MarketingData {
+  image_url: string;
+  pr_article: string;
+}
+
+export const fetchGenerateMarketing = async (urun_adi: string): Promise<MarketingData> => {
+  const res = await fetch(`${API_URL}/api/marketing/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ urun_adi }),
+  });
+  if (!res.ok) throw new Error("Failed to generate marketing material");
+  return res.json();
+};

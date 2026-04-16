@@ -14,6 +14,7 @@ export default function DashboardLayout({
     { name: "Genel Özet", href: "/" },
     { name: "Ürün Analizi", href: "/urunler" },
     { name: "Bölgeler ve Harita", href: "/bolgeler" },
+    { name: "AI Satış Danışmanı", href: "/ai-asistan" },
   ];
 
   return (

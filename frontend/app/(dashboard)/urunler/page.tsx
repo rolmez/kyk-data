@@ -1,14 +1,39 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchProductsList, fetchProductTrend, fetchAbcAnalysis, ProductListItem, MonthlyTrendData, ABCAnalysisItem } from "@/lib/api";
-import { Card, Title, Subtitle, LineChart, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge } from "@tremor/react";
+import { fetchProductsList, fetchProductTrend, fetchAbcAnalysis, fetchGenerateMarketing, ProductListItem, MonthlyTrendData, ABCAnalysisItem, MarketingData } from "@/lib/api";
+import { Card, Title, Subtitle, LineChart, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge, Button } from "@tremor/react";
+
+// Simple markdown bold parser
+const renderMarkdownText = (text: string) => {
+  return text.split('\n').map((line, i) => {
+    if (!line.trim()) return <br key={i} />;
+    
+    // Parse bold text **bold**
+    const parts = line.split(/(\*\*.*?\*\*)/g);
+    return (
+      <p key={i} className="mb-2">
+        {parts.map((part, j) => {
+          if (part.startsWith('**') && part.endsWith('**')) {
+            return <strong key={j}>{part.slice(2, -2)}</strong>;
+          }
+           // Parse headers # Header
+          if (part.startsWith('# ')) return <span key={j} className="text-xl font-bold block mb-2">{part.replace('# ', '')}</span>;
+          if (part.startsWith('## ')) return <span key={j} className="text-lg font-bold block mb-2">{part.replace('## ', '')}</span>;
+          return part;
+        })}
+      </p>
+    );
+  });
+};
 
 export default function UrunlerPage() {
   const [products, setProducts] = useState<ProductListItem[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<string>("MegaFlex Y103");
   const [trendData, setTrendData] = useState<MonthlyTrendData[]>([]);
   const [abcData, setAbcData] = useState<ABCAnalysisItem[]>([]);
+  const [isMarketingLoading, setIsMarketingLoading] = useState<boolean>(false);
+  const [marketingResult, setMarketingResult] = useState<MarketingData | null>(null);
 
   useEffect(() => {
     // İlk yüklemede, ürün kodlarını ve genel abc analizini alıyoruz.
@@ -39,7 +64,23 @@ export default function UrunlerPage() {
       }
     };
     loadTrend();
+    // Clear marketing result on product change
+    setMarketingResult(null);
   }, [selectedProduct]);
+
+  const handleGenerateMarketing = async () => {
+    if (!selectedProduct) return;
+    setIsMarketingLoading(true);
+    setMarketingResult(null);
+    try {
+      const data = await fetchGenerateMarketing(selectedProduct);
+      setMarketingResult(data);
+    } catch (err) {
+      console.error("Marketing generation error", err);
+      alert("Pazarlama içeriği üretilirken bir hata oluştu. Fal Key'i veya bağlantıyı kontrol edin.");
+    }
+    setIsMarketingLoading(false);
+  };
 
   return (
     <div className="p-8 space-y-6">
@@ -74,6 +115,42 @@ export default function UrunlerPage() {
           valueFormatter={(number) => Intl.NumberFormat("tr").format(number).toString()}
           yAxisWidth={64}
         />
+
+        <div className="mt-6 border-t pt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between">
+            <div>
+              <Title>Yapay Zeka ile Pazarlama İçeriği Üret</Title>
+              <Subtitle>Seçili ürün için dergi kalitesinde PR içeriği ve profesyonel reklam görseli oluştur (Fal.ai Flux + Claude 4.5 Sonnet)</Subtitle>
+            </div>
+            <Button 
+               size="lg" 
+               color="emerald" 
+               className="mt-4 sm:mt-0 shadow-lg"
+               loading={isMarketingLoading}
+               onClick={handleGenerateMarketing}
+            >
+              ✨ Dergi / PR Bülteni Üret
+            </Button>
+          </div>
+
+          {marketingResult && (
+            <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8 bg-slate-50 dark:bg-slate-800/50 p-6 rounded-xl border border-slate-100 dark:border-slate-800">
+              <div className="flex flex-col space-y-4">
+                <Title className="text-emerald-600">Üretilen Kampanya Görseli</Title>
+                <div className="rounded-xl overflow-hidden shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 aspect-video relative bg-slate-200 dark:bg-slate-700 animate-fade-in group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={marketingResult.image_url} alt="Campaign Visual" className="object-cover w-full h-full transition-transform duration-700 group-hover:scale-105" />
+                </div>
+              </div>
+              <div className="flex flex-col space-y-4">
+                <Title className="text-indigo-600">PR Basın Bülteni</Title>
+                <div className="prose prose-slate dark:prose-invert prose-sm md:prose-base bg-white dark:bg-slate-900 p-6 rounded-xl shadow-lg border border-slate-100 dark:border-slate-800 overflow-y-auto max-h-[500px]">
+                   {renderMarkdownText(marketingResult.pr_article)}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </Card>
 
       <Card>
