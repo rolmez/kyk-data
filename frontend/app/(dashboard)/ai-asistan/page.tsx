@@ -141,7 +141,6 @@ export default function AiAsistanPage() {
     <div className="p-8 h-[calc(100vh)] flex flex-col space-y-4">
        <div>
          <Title className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-400">AI Satış Danışmanı</Title>
-         <p className="text-slate-500 text-sm mt-1">Memory Devrede: Geçmiş sorularınızı anlayıp çapraz tablolarla yeni yanıtlar üretir.</p>
        </div>
        
        <Card className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800">

@@ -92,3 +92,18 @@ def get_abc_analysis():
 def get_kpi_cards(year: int = Query(2024)):
     """Returns dynamic KPI card values for the dashboard."""
     return data_service.get_kpi_cards(year=year)
+
+@router.get("/profitability/categories")
+def get_profitability_categories(year: int = Query(2024)):
+    """Returns profitability metrics grouped by category."""
+    return data_service.get_profitability_by_category(year=year)
+
+@router.get("/profitability/products")
+def get_profitability_products(year: int = Query(2024), limit: int = Query(10), most_profitable: bool = Query(True)):
+    """Returns top/bottom products by profit."""
+    return data_service.get_profitability_by_product(year=year, limit=limit, most_profitable=most_profitable)
+
+@router.get("/profitability/margin-trend")
+def get_margin_trend(year: int = Query(2024)):
+    """Returns monthly margin trend."""
+    return data_service.get_margin_trend(year=year)

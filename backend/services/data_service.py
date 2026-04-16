@@ -177,3 +177,59 @@ def get_kpi_cards(year: int) -> dict:
         "toplam_kar": float(df['toplam_kar'].iloc[0]),
         "ort_kar_marji": float(df['ort_kar_marji'].iloc[0])
     }
+
+def get_profitability_by_category(year: int) -> list:
+    conn = get_duckdb_connection()
+    query = f"""
+    SELECT
+        kategori,
+        ROUND(SUM(ciro_tl), 0) as toplam_ciro,
+        ROUND(SUM(kar_tl), 0) as toplam_kar,
+        ROUND(SUM(maliyet_tl), 0) as toplam_maliyet,
+        ROUND(AVG(kar_marji_pct), 1) as ort_kar_marji,
+        ROUND(SUM(miktar_kg), 0) as toplam_hacim
+    FROM read_csv_auto('{CSV_PATH}')
+    WHERE yil = {year}
+    GROUP BY kategori
+    ORDER BY toplam_kar DESC
+    """
+    df = conn.execute(query).df()
+    return df.to_dict(orient="records")
+
+def get_profitability_by_product(year: int, limit: int = 10, most_profitable: bool = True) -> list:
+    conn = get_duckdb_connection()
+    order = "DESC" if most_profitable else "ASC"
+    query = f"""
+    SELECT
+        urun_adi,
+        kategori,
+        ROUND(SUM(ciro_tl), 0) as toplam_ciro,
+        ROUND(SUM(kar_tl), 0) as toplam_kar,
+        ROUND(AVG(kar_marji_pct), 1) as ort_kar_marji,
+        ROUND(SUM(miktar_kg), 0) as toplam_hacim
+    FROM read_csv_auto('{CSV_PATH}')
+    WHERE yil = {year}
+    GROUP BY urun_adi, kategori
+    HAVING toplam_kar > 0
+    ORDER BY toplam_kar {order}
+    LIMIT {limit}
+    """
+    df = conn.execute(query).df()
+    return df.to_dict(orient="records")
+
+def get_margin_trend(year: int) -> list:
+    conn = get_duckdb_connection()
+    query = f"""
+    SELECT
+        ay,
+        ay_adi,
+        ROUND(AVG(kar_marji_pct), 1) as ort_marj,
+        ROUND(SUM(kar_tl), 0) as toplam_kar,
+        ROUND(SUM(ciro_tl), 0) as toplam_ciro
+    FROM read_csv_auto('{CSV_PATH}')
+    WHERE yil = {year}
+    GROUP BY ay, ay_adi
+    ORDER BY ay
+    """
+    df = conn.execute(query).df()
+    return df.to_dict(orient="records")

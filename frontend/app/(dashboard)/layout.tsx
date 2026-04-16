@@ -13,6 +13,7 @@ export default function DashboardLayout({
   const navLinks = [
     { name: "Genel Özet", href: "/", icon: "📊" },
     { name: "Ürün Analizi", href: "/urunler", icon: "📦" },
+    { name: "Karlılık Analizi", href: "/karlilik", icon: "💰" },
     { name: "Bölgeler ve Harita", href: "/bolgeler", icon: "🗺️" },
     { name: "AI Satış Danışmanı", href: "/ai-asistan", icon: "🤖" },
   ];
@@ -49,7 +50,7 @@ export default function DashboardLayout({
         {/* Footer */}
         <div className="p-4 border-t border-slate-100 dark:border-slate-700">
           <p className="text-xs text-slate-400 text-center">
-            Powered by AI · v1.0 Demo
+            v1.0 Demo
           </p>
           <p className="text-xs text-slate-300 dark:text-slate-600 text-center mt-1">
             © 2026 KYK Yapı Kimyasalları

@@ -67,7 +67,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-xs text-white/30">
-          © 2026 KYK Yapı Kimyasalları · AI Analytics v1.0
+          © 2026 KYK Yapı Kimyasalları · v1.0 Demo
         </p>
       </div>
     </div>

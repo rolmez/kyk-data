@@ -96,18 +96,25 @@ export default function Dashboard() {
         </Card>
       </Grid>
       
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <TopProductsChart 
-          data={topGrowing} 
-          title="En Çok Büyüyen Ürünler (Hacim YoY)" 
-          subtitle={`${selectedYear} yılı için hacimsel bazda pozitif büyüme gösteren 5 ürün`} 
-        />
-        <TopProductsChart 
-          data={topDeclining} 
-          title="En Çok Düşen Ürünler (Hacim YoY)" 
-          subtitle={`${selectedYear} yılı için hacimsel bazda gerileme yaşayan 5 ürün`} 
-        />
-      </div>
+      {selectedYear === 2022 ? (
+        <div className="mt-6 p-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-center">
+          <p className="text-amber-700 dark:text-amber-300 font-medium">📌 2022 yılı için YoY (Yıldan Yıla) karşılaştırma yapılamıyor çünkü sistemde 2021 verisi bulunmuyor.</p>
+          <p className="text-amber-600 dark:text-amber-400 text-sm mt-1">Lütfen 2023 veya 2024 yılını seçerek büyüme/gerileme analizlerini görüntüleyin.</p>
+        </div>
+      ) : (
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <TopProductsChart 
+            data={topGrowing} 
+            title="En Çok Büyüyen Ürünler (Hacim YoY)" 
+            subtitle={`${selectedYear} yılı için hacimsel bazda pozitif büyüme gösteren 5 ürün`} 
+          />
+          <TopProductsChart 
+            data={topDeclining} 
+            title="En Çok Düşen Ürünler (Hacim YoY)" 
+            subtitle={`${selectedYear} yılı için hacimsel bazda gerileme yaşayan 5 ürün`} 
+          />
+        </div>
+      )}
 
     </div>
   );

@@ -129,3 +129,55 @@ export const fetchKpiCards = async (year: number): Promise<KpiCards> => {
   if (!res.ok) throw new Error("Failed to fetch KPI cards");
   return res.json();
 };
+
+export interface ProfitCategory {
+  kategori: string;
+  toplam_ciro: number;
+  toplam_kar: number;
+  toplam_maliyet: number;
+  ort_kar_marji: number;
+  toplam_hacim: number;
+}
+
+export interface ProfitProduct {
+  urun_adi: string;
+  kategori: string;
+  toplam_ciro: number;
+  toplam_kar: number;
+  ort_kar_marji: number;
+  toplam_hacim: number;
+}
+
+export interface MarginTrend {
+  ay: number;
+  ay_adi: string;
+  ort_marj: number;
+  toplam_kar: number;
+  toplam_ciro: number;
+}
+
+export const fetchProfitByCategory = async (year: number): Promise<ProfitCategory[]> => {
+  const url = new URL(`${API_URL}/api/analytics/profitability/categories`);
+  url.searchParams.append("year", year.toString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error("Failed");
+  return res.json();
+};
+
+export const fetchProfitByProduct = async (year: number, limit = 10, mostProfitable = true): Promise<ProfitProduct[]> => {
+  const url = new URL(`${API_URL}/api/analytics/profitability/products`);
+  url.searchParams.append("year", year.toString());
+  url.searchParams.append("limit", limit.toString());
+  url.searchParams.append("most_profitable", mostProfitable.toString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error("Failed");
+  return res.json();
+};
+
+export const fetchMarginTrend = async (year: number): Promise<MarginTrend[]> => {
+  const url = new URL(`${API_URL}/api/analytics/profitability/margin-trend`);
+  url.searchParams.append("year", year.toString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error("Failed");
+  return res.json();
+};
