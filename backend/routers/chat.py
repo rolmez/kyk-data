@@ -14,7 +14,7 @@ class ChatRequest(BaseModel):
     messages: List[ChatMessagePayload]
     new_message: str
 
-@router.post("/")
+@router.post("")
 def send_chat_message(req: ChatRequest):
     if not os.getenv("ANTHROPIC_API_KEY"):
         return {"reply": "Sistem Hatası: 'ANTHROPIC_API_KEY' bulunamadı."}

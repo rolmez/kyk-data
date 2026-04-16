@@ -3,18 +3,10 @@ import duckdb
 from anthropic import Anthropic
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
-DB_PATH = os.path.join(BASE_DIR, 'kyk_data.duckdb')
 CSV_PATH = os.path.join(BASE_DIR, 'kyk_satis_2022_2024.csv')
-
-def init_db():
-    if not os.path.exists(DB_PATH):
-        conn = duckdb.connect(DB_PATH)
-        conn.execute(f"CREATE TABLE satislar AS SELECT * FROM read_csv_auto('{CSV_PATH}')")
-        conn.close()
 
 def query_sales_data_with_memory(history: list, new_question: str) -> str:
     """Natively executes Text-to-SQL + Memory using Anthropics API to completely bypass LlamaIndex dependency hell."""
-    init_db()
     anthropic_key = os.getenv("ANTHROPIC_API_KEY")
     client = Anthropic(api_key=anthropic_key)
     
@@ -61,8 +53,10 @@ GÖREVİN 2: Eğer kullanıcının sorusu SQL gerektirmeyen (Örn: "Selam", "Te�
         
         # Eğer üretilen metin bir SQL sorgusu ise arkaplanda çalıştır
         if sql_or_reply.upper().startswith("SELECT") or sql_or_reply.upper().startswith("WITH"):
-            conn = duckdb.connect(DB_PATH)
-            df = conn.execute(sql_or_reply).df()
+            # Replace 'satislar' with direct CSV read just like data_service does to prevent Linux/Mac DB format lock DB crashes
+            execute_query = sql_or_reply.replace("satislar", f"read_csv_auto('{CSV_PATH}')")
+            conn = duckdb.connect()
+            df = conn.execute(execute_query).df()
             conn.close()
             
             # Veri çok büyükse ilk 20 satırı al
