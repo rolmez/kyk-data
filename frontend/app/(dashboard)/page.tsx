@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchSummaryStats, fetchTopGrowingProducts, fetchTopDecliningProducts, fetchKpiCards, SummaryStats, ProductTrend, KpiCards } from "@/lib/api";
+import { fetchSummaryStats, fetchTopGrowingProducts, fetchTopDecliningProducts, fetchKpiCards, fetchCategorySales, SummaryStats, ProductTrend, KpiCards, CategorySalesItem } from "@/lib/api";
 import { TopProductsChart } from "@/components/charts/TopProductsChart";
-import { Card, Metric, Text, BadgeDelta, Grid } from "@tremor/react";
+import { Card, Metric, Text, BadgeDelta, Grid, DonutChart, Title, Subtitle } from "@tremor/react";
 
 export default function Dashboard() {
   const [selectedYear, setSelectedYear] = useState(2024);
@@ -11,20 +11,23 @@ export default function Dashboard() {
   const [kpi, setKpi] = useState<KpiCards | null>(null);
   const [topGrowing, setTopGrowing] = useState<ProductTrend[]>([]);
   const [topDeclining, setTopDeclining] = useState<ProductTrend[]>([]);
+  const [categories, setCategories] = useState<CategorySalesItem[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [sumData, growingData, decliningData, kpiData] = await Promise.all([
+        const [sumData, growingData, decliningData, kpiData, catData] = await Promise.all([
           fetchSummaryStats(selectedYear),
           fetchTopGrowingProducts(selectedYear),
           fetchTopDecliningProducts(selectedYear),
           fetchKpiCards(selectedYear),
+          fetchCategorySales(selectedYear),
         ]);
         setSummary(sumData);
         setTopGrowing(growingData);
         setTopDeclining(decliningData);
         setKpi(kpiData);
+        setCategories(catData);
       } catch (err) {
         console.error("Error fetching data", err);
       }
@@ -115,6 +118,22 @@ export default function Dashboard() {
           />
         </div>
       )}
+
+      {/* Kategori Bazlı Ciro Dağılımı */}
+      <div className="mt-6">
+        <Card>
+          <Title>Kategori Bazlı Ciro Dağılımı</Title>
+          <Subtitle>{selectedYear} yılında 8 ürün kategorisinin toplam ciroya katkı oranları</Subtitle>
+          <DonutChart
+            className="mt-6 h-72"
+            data={categories}
+            category="toplam_ciro"
+            index="kategori"
+            valueFormatter={(val) => `₺${(val/1000000).toFixed(1)}M`}
+            colors={["blue", "emerald", "violet", "amber", "rose", "cyan", "indigo", "fuchsia"]}
+          />
+        </Card>
+      </div>
 
     </div>
   );

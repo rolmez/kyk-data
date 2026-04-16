@@ -59,6 +59,50 @@ export const fetchRegionsData = async (year: number): Promise<RegionalSalesItem[
   return res.json();
 };
 
+export interface RegionalYoY {
+  bolge_adi: string;
+  ciro_current: number;
+  ciro_prev: number;
+  degisim_pct: number;
+}
+
+export interface RegionCategoryItem {
+  bolge_adi: string;
+  kategori: string;
+  ciro: number;
+  hacim: number;
+}
+
+export interface CategorySalesItem {
+  kategori: string;
+  toplam_ciro: number;
+  toplam_miktar: number;
+}
+
+export const fetchRegionalYoY = async (year: number): Promise<RegionalYoY[]> => {
+  const url = new URL(`${API_URL}/api/analytics/regions/yoy`);
+  url.searchParams.append("year", year.toString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error("Failed");
+  return res.json();
+};
+
+export const fetchRegionCategoryBreakdown = async (year: number): Promise<RegionCategoryItem[]> => {
+  const url = new URL(`${API_URL}/api/analytics/regions/category-breakdown`);
+  url.searchParams.append("year", year.toString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error("Failed");
+  return res.json();
+};
+
+export const fetchCategorySales = async (year: number): Promise<CategorySalesItem[]> => {
+  const url = new URL(`${API_URL}/api/analytics/categories`);
+  url.searchParams.append("year", year.toString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error("Failed");
+  return res.json();
+};
+
 export interface ProductListItem {
   urun_adi: string;
   kategori: string;

@@ -65,6 +65,16 @@ def get_regions(
     """Returns sales grouped by region."""
     return data_service.get_regional_sales(year=year, month=month)
 
+@router.get("/regions/yoy")
+def get_regional_yoy(year: int = Query(2024)):
+    """Returns YoY growth comparison by region."""
+    return data_service.get_regional_yoy(year=year)
+
+@router.get("/regions/category-breakdown")
+def get_region_category_breakdown(year: int = Query(2024)):
+    """Returns category breakdown per region."""
+    return data_service.get_region_category_breakdown(year=year)
+
 @router.get("/categories", response_model=List[CategorySales])
 def get_categories(
     year: int = Query(2024),

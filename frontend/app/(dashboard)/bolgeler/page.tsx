@@ -1,25 +1,47 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchRegionsData, RegionalSalesItem } from "@/lib/api";
+import { fetchRegionsData, fetchRegionalYoY, fetchRegionCategoryBreakdown, RegionalSalesItem, RegionalYoY, RegionCategoryItem } from "@/lib/api";
 import TurkeyMap from "@/components/map/TurkeyMap";
-import { Card, Title, Subtitle, DonutChart, List, ListItem, Bold } from "@tremor/react";
+import { Card, Title, Subtitle, DonutChart, List, ListItem, Bold, BarChart, Table, TableHead, TableRow, TableHeaderCell, TableBody, TableCell, Badge } from "@tremor/react";
 
 export default function BolgelerPage() {
   const [selectedYear, setSelectedYear] = useState<number>(2024);
   const [regions, setRegions] = useState<RegionalSalesItem[]>([]);
+  const [yoyData, setYoyData] = useState<RegionalYoY[]>([]);
+  const [categoryBreakdown, setCategoryBreakdown] = useState<RegionCategoryItem[]>([]);
+  const [selectedRegion, setSelectedRegion] = useState<string>("");
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const data = await fetchRegionsData(selectedYear);
-        setRegions(data);
+        const [regData, yoy, catBreak] = await Promise.all([
+          fetchRegionsData(selectedYear),
+          fetchRegionalYoY(selectedYear),
+          fetchRegionCategoryBreakdown(selectedYear),
+        ]);
+        setRegions(regData);
+        setYoyData(yoy);
+        setCategoryBreakdown(catBreak);
       } catch(err) {
         console.error("Regions fetch err", err);
       }
     };
     loadData();
   }, [selectedYear]);
+
+  const yoyBarData = yoyData.map(r => ({
+    bolge: r.bolge_adi,
+    "YoY Değişim (%)": r.degisim_pct,
+  }));
+
+  // Seçili bölgenin kategori kırılımı
+  const filteredCategories = selectedRegion
+    ? categoryBreakdown.filter(c => c.bolge_adi === selectedRegion)
+    : [];
+
+  // Tüm unique bölge isimleri
+  const regionNames = Array.from(new Set(categoryBreakdown.map(c => c.bolge_adi)));
 
   return (
     <div className="p-8 space-y-6">
@@ -62,7 +84,7 @@ export default function BolgelerPage() {
               category="toplam_ciro"
               index="bolge_adi"
               valueFormatter={(val) => `₺${(val/1000000).toFixed(1)}M`}
-              colors={["blue", "cyan", "indigo", "violet", "fuchsia"]}
+              colors={["blue", "cyan", "indigo", "violet", "fuchsia", "emerald", "amber", "rose"]}
             />
           </Card>
           <Card>
@@ -78,6 +100,70 @@ export default function BolgelerPage() {
           </Card>
         </div>
       </div>
+
+      {/* YoY Bölgesel Büyüme */}
+      {selectedYear !== 2022 && yoyBarData.length > 0 && (
+        <Card>
+          <Title>Bölgesel YoY Ciro Değişimi (%)</Title>
+          <Subtitle>{selectedYear} vs {selectedYear - 1} — Hangi bölge büyüyor, hangisi geriliyor?</Subtitle>
+          <BarChart
+            className="h-72 mt-4"
+            data={yoyBarData}
+            index="bolge"
+            categories={["YoY Değişim (%)"]}
+            colors={["blue"]}
+            valueFormatter={(v) => `${v > 0 ? '+' : ''}${v}%`}
+            yAxisWidth={56}
+          />
+        </Card>
+      )}
+
+      {/* Bölge Bazlı Kategori Dağılımı */}
+      <Card>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+          <div>
+            <Title>Bölge Bazlı Kategori Dağılımı</Title>
+            <Subtitle>Seçili bölgedeki ürün kategorilerinin ciro kırılımı</Subtitle>
+          </div>
+          <select
+            value={selectedRegion}
+            onChange={e => setSelectedRegion(e.target.value)}
+            className="border p-2 rounded-md bg-white dark:bg-slate-800 sm:w-64"
+          >
+            <option value="">Bölge seçiniz...</option>
+            {regionNames.map(name => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        </div>
+
+        {selectedRegion ? (
+          <Table className="mt-2">
+            <TableHead>
+              <TableRow>
+                <TableHeaderCell>Kategori</TableHeaderCell>
+                <TableHeaderCell className="text-right">Ciro</TableHeaderCell>
+                <TableHeaderCell className="text-right">Hacim (KG)</TableHeaderCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredCategories.map((c) => (
+                <TableRow key={c.kategori}>
+                  <TableCell>
+                    <Badge color="blue">{c.kategori}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-semibold">₺{(c.ciro / 1000000).toFixed(2)}M</TableCell>
+                  <TableCell className="text-right">{Intl.NumberFormat("tr").format(c.hacim)} kg</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="py-8 text-center text-slate-400 text-sm">
+            Yukarıdan bir bölge seçerek o bölgenin kategori bazlı ciro dağılımını görüntüleyin.
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

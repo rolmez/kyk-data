@@ -83,6 +83,42 @@ def get_regional_sales(year: int, month: int = None) -> list:
     df = conn.execute(query, params).df()
     return df.to_dict(orient="records")
 
+def get_regional_yoy(year: int) -> list:
+    conn = get_duckdb_connection()
+    query = f"""
+    SELECT
+        bolge_adi,
+        SUM(CASE WHEN yil = {year} THEN ciro_tl ELSE 0 END) AS ciro_current,
+        SUM(CASE WHEN yil = {year - 1} THEN ciro_tl ELSE 0 END) AS ciro_prev,
+        ROUND(
+            (SUM(CASE WHEN yil = {year} THEN ciro_tl ELSE 0 END) /
+             NULLIF(SUM(CASE WHEN yil = {year - 1} THEN ciro_tl ELSE 0 END), 0) - 1) * 100, 1
+        ) AS degisim_pct
+    FROM read_csv_auto('{CSV_PATH}')
+    WHERE yil IN ({year}, {year - 1})
+    GROUP BY bolge_adi
+    HAVING ciro_prev > 0
+    ORDER BY degisim_pct DESC
+    """
+    df = conn.execute(query).df()
+    return df.to_dict(orient="records")
+
+def get_region_category_breakdown(year: int) -> list:
+    conn = get_duckdb_connection()
+    query = f"""
+    SELECT
+        bolge_adi,
+        kategori,
+        ROUND(SUM(ciro_tl), 0) as ciro,
+        ROUND(SUM(miktar_kg), 0) as hacim
+    FROM read_csv_auto('{CSV_PATH}')
+    WHERE yil = {year}
+    GROUP BY bolge_adi, kategori
+    ORDER BY bolge_adi, ciro DESC
+    """
+    df = conn.execute(query).df()
+    return df.to_dict(orient="records")
+
 def get_category_sales(year: int, month: int = None) -> list:
     conn = get_duckdb_connection()
     month_filter = "ay = ? AND" if month else ""
