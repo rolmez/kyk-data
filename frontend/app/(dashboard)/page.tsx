@@ -54,7 +54,7 @@ export default function Dashboard() {
             {summary ? `₺${(summary.total_revenue / 1000000).toFixed(2)}M` : 'Yükleniyor...'}
           </Metric>
         </Card>
-        <Card decoration="top" decorationColor={summary?.yoy_growth_pct > 0 ? "emerald" : "rose"}>
+        <Card decoration="top" decorationColor={(summary?.yoy_growth_pct ?? 0) > 0 ? "emerald" : "rose"}>
           <Text>YoY Büyüme (Ciro)</Text>
           <div className="flex items-center space-x-2 mt-2">
             <Metric>{summary ? `${summary.yoy_growth_pct}%` : '...'}</Metric>
