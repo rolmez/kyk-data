@@ -11,6 +11,8 @@ app = FastAPI(title="KYK Data Analysis Demo API")
 
 # Setup CORS for Next.js frontend
 origins = [
+    "http://localhost:3000",
+    "https://kyk-data-umber.vercel.app",
     os.getenv("FRONTEND_URL", "http://localhost:3000"),
 ]
 
