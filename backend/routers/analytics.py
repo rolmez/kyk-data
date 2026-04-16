@@ -87,3 +87,8 @@ def get_product_trend(urun_adi: str = Query(..., description="Product name to an
 def get_abc_analysis():
     """Returns the ABC revenue classification of all products."""
     return data_service.get_abc_analysis()
+
+@router.get("/kpi-cards")
+def get_kpi_cards(year: int = Query(2024)):
+    """Returns dynamic KPI card values for the dashboard."""
+    return data_service.get_kpi_cards(year=year)

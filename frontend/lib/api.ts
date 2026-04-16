@@ -114,3 +114,18 @@ export const fetchGenerateMarketing = async (urun_adi: string): Promise<Marketin
   if (!res.ok) throw new Error("Failed to generate marketing material");
   return res.json();
 };
+
+export interface KpiCards {
+  aktif_urun: number;
+  toplam_siparis: number;
+  toplam_kar: number;
+  ort_kar_marji: number;
+}
+
+export const fetchKpiCards = async (year: number): Promise<KpiCards> => {
+  const url = new URL(`${API_URL}/api/analytics/kpi-cards`);
+  url.searchParams.append("year", year.toString());
+  const res = await fetch(url.toString());
+  if (!res.ok) throw new Error("Failed to fetch KPI cards");
+  return res.json();
+};

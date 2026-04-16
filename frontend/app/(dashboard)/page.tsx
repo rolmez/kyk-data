@@ -1,25 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchSummaryStats, fetchTopGrowingProducts, fetchTopDecliningProducts, SummaryStats, ProductTrend } from "@/lib/api";
+import { fetchSummaryStats, fetchTopGrowingProducts, fetchTopDecliningProducts, fetchKpiCards, SummaryStats, ProductTrend, KpiCards } from "@/lib/api";
 import { TopProductsChart } from "@/components/charts/TopProductsChart";
 import { Card, Metric, Text, BadgeDelta, Grid } from "@tremor/react";
 
 export default function Dashboard() {
   const [selectedYear, setSelectedYear] = useState(2024);
   const [summary, setSummary] = useState<SummaryStats | null>(null);
+  const [kpi, setKpi] = useState<KpiCards | null>(null);
   const [topGrowing, setTopGrowing] = useState<ProductTrend[]>([]);
   const [topDeclining, setTopDeclining] = useState<ProductTrend[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const sumData = await fetchSummaryStats(selectedYear);
-        const growingData = await fetchTopGrowingProducts(selectedYear);
-        const decliningData = await fetchTopDecliningProducts(selectedYear);
+        const [sumData, growingData, decliningData, kpiData] = await Promise.all([
+          fetchSummaryStats(selectedYear),
+          fetchTopGrowingProducts(selectedYear),
+          fetchTopDecliningProducts(selectedYear),
+          fetchKpiCards(selectedYear),
+        ]);
         setSummary(sumData);
         setTopGrowing(growingData);
         setTopDeclining(decliningData);
+        setKpi(kpiData);
       } catch (err) {
         console.error("Error fetching data", err);
       }
@@ -32,7 +37,7 @@ export default function Dashboard() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100">KYK Satış Analiz Özeti</h1>
-          <p className="text-slate-500">Burası Dashboard ana yönetim panelidir.</p>
+          <p className="text-slate-500">Yıllık performans göstergeleri ve ürün bazlı büyüme/gerileme haritası.</p>
         </div>
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium">Satış Yılı:</label>
@@ -43,6 +48,7 @@ export default function Dashboard() {
           >
             <option value={2024}>2024</option>
             <option value={2023}>2023</option>
+            <option value={2022}>2022</option>
           </select>
         </div>
       </div>
@@ -65,11 +71,28 @@ export default function Dashboard() {
         </Card>
         <Card decoration="top" decorationColor="amber">
           <Text>Aktif Ürün Sayısı</Text>
-          <Metric>36</Metric>
+          <Metric>{kpi ? kpi.aktif_urun : '...'}</Metric>
         </Card>
         <Card decoration="top" decorationColor="indigo">
-          <Text>Gerçekleşen Gönderim</Text>
-          <Metric>1.204</Metric>
+          <Text>Toplam Sipariş</Text>
+          <Metric>{kpi ? Intl.NumberFormat("tr").format(kpi.toplam_siparis) : '...'}</Metric>
+        </Card>
+      </Grid>
+
+      {/* İkinci satır: Kar metrikleri */}
+      <Grid numItemsSm={2} numItemsLg={2} className="gap-4 mt-4">
+        <Card decoration="top" decorationColor="emerald">
+          <Text>Toplam Brüt Kar</Text>
+          <Metric>{kpi ? `₺${(kpi.toplam_kar / 1000000).toFixed(2)}M` : '...'}</Metric>
+        </Card>
+        <Card decoration="top" decorationColor={(kpi?.ort_kar_marji ?? 0) > 30 ? "emerald" : "rose"}>
+          <Text>Ortalama Kar Marjı</Text>
+          <div className="flex items-center space-x-2 mt-2">
+            <Metric>{kpi ? `%${kpi.ort_kar_marji}` : '...'}</Metric>
+            {kpi && (
+              <BadgeDelta deltaType={kpi.ort_kar_marji > 30 ? "moderateIncrease" : "moderateDecrease"} />
+            )}
+          </div>
         </Card>
       </Grid>
       

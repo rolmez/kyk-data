@@ -158,3 +158,22 @@ def get_abc_analysis() -> list:
     """
     df = conn.execute(query).df()
     return df.to_dict(orient="records")
+
+def get_kpi_cards(year: int) -> dict:
+    conn = get_duckdb_connection()
+    query = f"""
+    SELECT
+        COUNT(DISTINCT urun_adi) as aktif_urun,
+        COUNT(DISTINCT siparis_id) as toplam_siparis,
+        ROUND(SUM(kar_tl), 0) as toplam_kar,
+        ROUND(AVG(kar_marji_pct), 1) as ort_kar_marji
+    FROM read_csv_auto('{CSV_PATH}')
+    WHERE yil = {year}
+    """
+    df = conn.execute(query).df()
+    return {
+        "aktif_urun": int(df['aktif_urun'].iloc[0]),
+        "toplam_siparis": int(df['toplam_siparis'].iloc[0]),
+        "toplam_kar": float(df['toplam_kar'].iloc[0]),
+        "ort_kar_marji": float(df['ort_kar_marji'].iloc[0])
+    }
