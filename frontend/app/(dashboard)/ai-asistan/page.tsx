@@ -4,7 +4,7 @@ import { Card, Button, Title } from "@tremor/react";
 
 export default function AiAsistanPage() {
   const [messages, setMessages] = useState<{role: string, content: string}[]>([
-    { role: "assistant", content: "👋 KKY AI Satış Koçu'na hoş geldiniz! Hafızam (Claude 3.5 Sonnet) aktiftir.\nÖrneğin bana 'Ege bölgesinde ciro ne?' diye sorup ardından 'Peki ya İzmir'de rakam nasıl?' diyerek ardışık analitik sorgulamalar yapabilirsiniz." }
+    { role: "assistant", content: "KYK AI Asistana hoş geldiniz! Claude Sonnet 4.5 kullanılıyor.\nÖrneğin 'Ege bölgesinde ciro nedir?' veya 'İzmir'de satış rakamları nasıl?' gibi analitik sorgulamalar yapabilirsiniz." }
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,7 +52,7 @@ export default function AiAsistanPage() {
     <div className="p-8 h-[calc(100vh)] flex flex-col space-y-4">
        <div>
          <Title className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-400">AI Satış Danışmanı</Title>
-         <p className="text-slate-500 text-sm mt-1">Sürekli Hafıza (Memory) Modeli Devrede: Geçmiş sorularınızı anlayıp çapraz tablolarla yeni yanıtlar üretir.</p>
+         <p className="text-slate-500 text-sm mt-1">Memory Devrede: Geçmiş sorularınızı anlayıp çapraz tablolarla yeni yanıtlar üretir.</p>
        </div>
        
        <Card className="flex-1 flex flex-col overflow-hidden bg-white dark:bg-slate-900 shadow-sm border border-slate-200 dark:border-slate-800">
@@ -64,7 +64,7 @@ export default function AiAsistanPage() {
                    </div>
                 </div>
              ))}
-             {loading && <div className="text-slate-400 animate-pulse text-sm pl-2">Geçmiş Hatırlanıyor & Şema Sentezleniyor...</div>}
+             {loading && <div className="text-slate-400 animate-pulse text-sm pl-2">Geçmiş Hatırlanıyor & Yanıt Oluşturuluyor...</div>}
           </div>
           <div className="mt-4 p-4 border-t border-slate-200 dark:border-slate-800 flex gap-2 bg-slate-50 dark:bg-[#0b1120]">
              <input type="text"
