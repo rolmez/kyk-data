@@ -54,7 +54,7 @@ export default function AiAsistanPage() {
         
         buffer += decoder.decode(value, { stream: true });
         
-        let boundary = buffer.indexOf('\\n');
+        let boundary = buffer.indexOf('\n');
         while (boundary !== -1) {
           const line = buffer.slice(0, boundary).trim();
           buffer = buffer.slice(boundary + 1);
@@ -77,7 +77,7 @@ export default function AiAsistanPage() {
               // Ignore incomplete JSON chunks or malformed strings
             }
           }
-          boundary = buffer.indexOf('\\n');
+          boundary = buffer.indexOf('\n');
         }
       }
       
