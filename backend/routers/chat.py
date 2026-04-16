@@ -1,8 +1,9 @@
 import os
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List
-from services.chat_agent import query_sales_data_with_memory
+from services.chat_agent import query_sales_data_stream
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
 
@@ -19,8 +20,7 @@ def send_chat_message(req: ChatRequest):
     if not os.getenv("ANTHROPIC_API_KEY"):
         return {"reply": "Sistem Hatası: 'ANTHROPIC_API_KEY' bulunamadı."}
         
-    try:
-        reply = query_sales_data_with_memory(req.messages, req.new_message)
-        return {"reply": reply}
-    except Exception as e:
-        return {"reply": f"Bir AI hatasi olustu: {str(e)}"}
+    return StreamingResponse(
+        query_sales_data_stream(req.messages, req.new_message),
+        media_type="application/x-ndjson"
+    )

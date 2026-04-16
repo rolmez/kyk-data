@@ -8,25 +8,23 @@ export default function AiAsistanPage() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [actionStatus, setActionStatus] = useState<string>("");
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   const sendMessage = async () => {
     if (!input.trim() || loading) return;
     
-    // Store current values
     const outgoingMessage = input;
     const previousMessages = [...messages];
     
-    // Add user message to UI immediately
     const newMessages = [...messages, { role: "user", content: outgoingMessage }];
     setMessages(newMessages);
     setInput("");
     setLoading(true);
+    setActionStatus("Sunucuya bağlanılıyor...");
 
     try {
-      // Sadece asistanin ilk standart mesajini (Index 0) tarihin disinda birak veya hepsini gonderilebilir, 
-      // İlk mesajı API geçmişine göndermek gereksiz trafik yaratır. Son 4 diyalogumuzu alalım.
       const historyPayload = previousMessages
           .filter((_, idx) => idx !== 0) 
           .slice(-4); 
@@ -39,13 +37,61 @@ export default function AiAsistanPage() {
           new_message: outgoingMessage 
         })
       });
-      const data = await res.json();
-      setMessages([...newMessages, { role: "assistant", content: data.reply }]);
+
+      if (!res.body) throw new Error("No readable stream");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      
+      // Geçici asistan mesajını listeye enjekte et
+      setMessages([...newMessages, { role: "assistant", content: "" }]);
+      let assistantResponse = "";
+      let buffer = "";
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        
+        let boundary = buffer.indexOf('\\n');
+        while (boundary !== -1) {
+          const line = buffer.slice(0, boundary).trim();
+          buffer = buffer.slice(boundary + 1);
+          
+          if (line) {
+            try {
+              const data = JSON.parse(line);
+              if (data.type === "action") {
+                setActionStatus(data.content);
+              } else if (data.type === "text") {
+                assistantResponse += data.content;
+                // React statesini anlık olarak güncelle (Typewriter efekti)
+                setMessages(prev => {
+                  const updated = [...prev];
+                  updated[updated.length - 1].content = assistantResponse;
+                  return updated;
+                });
+              }
+            } catch {
+              // Ignore incomplete JSON chunks or malformed strings
+            }
+          }
+          boundary = buffer.indexOf('\\n');
+        }
+      }
+      
     } catch (e) {
       console.error(e);
-      setMessages([...newMessages, { role: "assistant", content: "Sunucu bağlantı hatası oluştu." }]);
+      setMessages(prev => {
+        const updated = [...prev];
+        updated[updated.length - 1].content = "Sunucu bağlantı hatası oluştu veya akış kesildi.";
+        return updated;
+      });
+    } finally {
+      setLoading(false);
+      setActionStatus("");
     }
-    setLoading(false);
   };
 
   return (
@@ -64,7 +110,11 @@ export default function AiAsistanPage() {
                    </div>
                 </div>
              ))}
-             {loading && <div className="text-slate-400 animate-pulse text-sm pl-2">Geçmiş Hatırlanıyor & Yanıt Oluşturuluyor...</div>}
+             {loading && actionStatus && (
+               <div className="flex items-center space-x-2 text-emerald-600 animate-pulse text-sm pl-2 py-2">
+                 <span>{actionStatus}</span>
+               </div>
+             )}
           </div>
           <div className="mt-4 p-4 border-t border-slate-200 dark:border-slate-800 flex gap-2 bg-slate-50 dark:bg-[#0b1120]">
              <input type="text"
