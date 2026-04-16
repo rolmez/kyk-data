@@ -10,7 +10,7 @@ export default function LoginPage() {
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === "kyk2025demo") {
+    if (password === "kyk2026demo") {
       document.cookie = `kyk_demo_auth=${password}; path=/; max-age=86400`;
       router.push("/");
     } else {
